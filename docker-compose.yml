@@ -1,0 +1,55 @@
+version: "3.3"
+
+services:
+  db:
+    restart: always
+    container_name: odoo_db
+    image: "postgres:10"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      ./postgres/.env
+    expose:
+      - 5432
+    ports:
+      - 5433:5432
+  pgadmin:
+    restart: always
+    container_name: odoo_pgadmin
+    image: "dpage/pgadmin4"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    env_file:
+      ./pgadmin/.env
+    ports:
+      - 5050:80
+  web:
+    restart: always
+    container_name: odoo_web
+    build:
+      context: ./odoo
+      dockerfile: Dockerfile
+    env_file:
+      ./odoo/.env
+    volumes:
+      - odoo_config:/etc/odoo
+      - odoo_data:/var/lib/odoo
+      - odoo_core:/usr/lib/python3/dist-packages/odoo
+    ports:
+      - 8069:8069
+    depends_on:
+      - db
+    tty: true
+    command: -- --dev=reload
+
+volumes:
+  postgres_data:
+    external: true
+  pgadmin_data:
+    external: true
+  odoo_config:
+    external: true
+  odoo_data:
+    external: true
+  odoo_core:
+    external: true
